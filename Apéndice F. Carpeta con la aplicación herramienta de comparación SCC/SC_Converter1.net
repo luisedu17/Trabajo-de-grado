@@ -1,0 +1,93 @@
+** Switched Capacitor Converter
+**
+.SUBCKT Serie_Paralelo SPins1 phif1 phif2 SPout
+* Capacitors Serie-Paralelo
+C1SP SPNC1 SPNS2 {C1ValSP}
+C2SP SPNC2 SPNS5 {C2ValSP}
+* Modelos de switches Serie-Paralelo
+.model SP_SWT1 SW(Ron={RonSPSwT1} Roff=1Meg Vt=5 Vh=2)
+.model SP_SWT2 SW(Ron={RonSPSwT2} Roff=1Meg Vt=5 Vh=2)
+.model SP_SWT3 SW(Ron={RonSPSwT3} Roff=1Meg Vt=5 Vh=2)
+* Switches Serie-Paralelo
+S1 SPins1 SPNC1 phif1 0 SP_SWT1
+S2 SPNS2 0 phif2 0 SP_SWT1
+S3 SPNC1 SPNC2 phif2 0 SP_SWT2
+S4 SPNS2 SPNC2 phif1 0 SP_SWT2
+S5 SPNS5 0 phif2 0 SP_SWT2
+S6 SPNC2 SPout phif2 0 SP_SWT3
+S7 SPNS5 SPout phif1 0 SP_SWT2
+.ends
+
+**
+.SUBCKT Dickson DCKins1 phif1 phif2 DCKout
+* Capacitors Dickson
+C1DCK DCKNC1 DCKNS6 {C1ValDCK}
+C2DCK DCKNC2 DCKNS7 {C2ValDCK}
+* Modelos de switches Dickson
+.model DCK_SWT1 SW(Ron={RonDCKSwT1} Roff=1Meg Vt=5 Vh=2)
+.model DCK_SWT2 SW(Ron={RonDCKSwT2} Roff=1Meg Vt=5 Vh=2)
+* Switches Dickson
+S1 DCKins1 DCKNC2 phif1 0 DCK_SWT1
+S2 DCKNC2 DCKNC1 phif2 0 DCK_SWT2
+S3 DCKNC1 DCKout phif1 0 DCK_SWT1
+S4 DCKout DCKNS6 phif2 0 DCK_SWT1
+S5 DCKout DCKNS7 phif1 0 DCK_SWT1
+S6 DCKNS6 0 phif1 0 DCK_SWT1
+S7 DCKNS7 0 phif2 0 DCK_SWT1
+.ends
+
+**
+.SUBCKT Ladder LADins1 phif1 phif2 LADout
+* Capacitors Dickson
+C1LAD LADNC1 LADNS6 {C1ValLAD}
+C2LAD LADNC2 LADout {C2ValLAD}
+C3LAD LADNC3 LADNC1 {C3ValLAD}
+* Modelos de switches Dickson
+.model LAD_SWT1 SW(Ron={RonLADSwT1} Roff=1Meg Vt=5 Vh=2)
+.model LAD_SWT2 SW(Ron={RonLADSwT2} Roff=1Meg Vt=5 Vh=2)
+* Switches Dickson
+S1 LADins1 LADNC3 phif1 0 LAD_SWT1
+S2 LADNC3 LADNC2 phif2 0 LAD_SWT1
+S3 LADNC2 LADNC1 phif1 0 LAD_SWT1
+S4 LADNC1 LADout phif2 0 LAD_SWT1
+S5 LADout LADNS6 phif1 0 LAD_SWT2
+S6 LADNS6 0 phif2 0 LAD_SWT2
+.ends
+
+
+
+* Parámetros y señales de fase
+.param Freq= {Freq}
+V_phi1 phi1 0 PULSE(10 0 0 1n 1n {1/(2*Freq)} {1/Freq})
+V_phi2 phi2 0 PULSE(0 10 0 1n 1n {1/(2*Freq)} {1/Freq})
+
+* Fuentes de entrada
+* Serie-Paralelo
+V1 SPVin 0 {Vin}
+* Dickson
+V2 DCKVin 0 {Vin}
+* Ladder
+V3 LADVin 0 {Vin}
+
+*Subcircuits
+X1 {SPIn1} phi1 phi2 {SPIn2} Serie_Paralelo
+X2 {DCKIn1} phi1 phi2 {DCKIn2} Dickson
+X3 {LADIn1} phi1 phi2 {LADIn2} Ladder
+
+* Carga y capacitor de salida
+* Serie-Paralelo
+RLSP SPVout 0 {RLmin}
+CoutSP SPVout 0 {SPCout}
+* Dickson
+RLDCK DCKVout 0 {RLmin}
+CoutDCK DCKVout 0 {DCKCout}
+*Ladder
+RLLAD LADVout 0 {RLmin}
+CoutLAD LADVout 0 {LADCout}
+
+* Configuración de simulación
+.tran 0 {Time} ; Nodos internos
+.end
+
+
+
